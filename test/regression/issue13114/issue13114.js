@@ -22,14 +22,32 @@ var renderPage = function (url) {
         console.log(page.reason_url);
     };
 
+    page.onConsoleMessage = function(msg, lineNum, sourceId) {
+        console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
+    };
+
+    page.onError = function(msg, trace) {
+
+      var msgStack = ['ERROR: ' + msg];
+
+      if (trace && trace.length) {
+        msgStack.push('TRACE:');
+        trace.forEach(function(t) {
+          msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+        });
+      }
+
+      console.error(msgStack.join('\n'));
+
+    };
+
     page.open(url, function (status) {
         if (status === "success") {
             var port = url.substring(17, 21);
             console.log("success", port)
             page.render('yourscreenshot' + port + '.png');
-            if (port === 8001) {
-                phantom.exit(0);
-            }
+            console.log(page.url, document.title);
+            phantom.exit(0);
         } else {
             console.log("failed", url)
             phantom.exit(1);
